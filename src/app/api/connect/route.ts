@@ -1,3 +1,4 @@
+import { ComposioAccount } from "@/types";
 import { Composio } from "@composio/core";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     });
 
     const googleConnection = existingConnections.items.find(
-      (account: any) => account.authConfig?.id === authConfigId
+      (account: ComposioAccount) => account.authConfig?.id === authConfigId
     );
 
     const callbackUrl = req.nextUrl.origin;

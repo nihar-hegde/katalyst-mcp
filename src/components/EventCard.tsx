@@ -20,13 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-interface Attendee {
-  email: string;
-  responseStatus: string;
-  organizer?: boolean;
-  self?: boolean;
-}
+import { Attendee } from "@/types";
 
 interface EventCardProps {
   id: string;
@@ -41,7 +35,6 @@ interface EventCardProps {
 }
 
 export function EventCard({
-  id,
   summary,
   start,
   end,

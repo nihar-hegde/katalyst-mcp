@@ -6,10 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Attendee } from "@/types";
+
+interface EventItem {
+  id: string;
+  summary: string;
+  start: { dateTime: string };
+  end: { dateTime: string };
+  description?: string;
+  attendees?: Attendee[];
+  hangoutLink?: string;
+  status?: string;
+}
+
+interface CalendarEventsResponse {
+  items: EventItem[];
+}
 
 interface CalendarData {
-  pastEvents: any;
-  futureEvents: any;
+  pastEvents: CalendarEventsResponse;
+  futureEvents: CalendarEventsResponse;
   connectedEmail: string;
 }
 
@@ -41,8 +57,8 @@ export default function HomePage() {
       setEvents(data);
       setIsConnected(true);
       setConnectedEmail(data.connectedEmail);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -109,8 +125,8 @@ export default function HomePage() {
         throw new Error(data.error || "Failed to get connection URL.");
       }
       window.location.href = data.redirectUrl;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
       setIsConnecting(false);
     }
   };
@@ -232,7 +248,7 @@ export default function HomePage() {
               </h2>
               <div className="space-y-4">
                 {events.futureEvents?.items?.length > 0 ? (
-                  events.futureEvents.items.map((event: any) => (
+                  events.futureEvents.items.map((event) => (
                     <EventCard
                       key={event.id}
                       id={event.id}
@@ -261,7 +277,7 @@ export default function HomePage() {
               </h2>
               <div className="space-y-4">
                 {events.pastEvents?.items?.length > 0 ? (
-                  events.pastEvents.items.map((event: any) => (
+                  events.pastEvents.items.map((event) => (
                     <EventCard
                       key={event.id}
                       id={event.id}

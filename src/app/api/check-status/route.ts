@@ -1,5 +1,6 @@
 // app/api/check-status/route.ts
 
+import { ComposioAccount } from "@/types";
 import { Composio } from "@composio/core";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -29,9 +30,9 @@ export async function GET(req: NextRequest) {
 
     // Find the specific Google Calendar connection
     const googleConnection = existingConnections.items.find(
-      (account: any) => account.authConfig?.id === authConfigId
+      (account: ComposioAccount) => account.authConfig?.id === authConfigId
     );
-    console.log("Possible email: ", googleConnection);
+    console.log("Possible email: ", googleConnection?.name);
 
     if (googleConnection) {
       return NextResponse.json({
