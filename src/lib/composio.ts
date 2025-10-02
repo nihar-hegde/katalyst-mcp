@@ -20,11 +20,11 @@ export interface Meeting {
 
 export async function getCalendarEvents(userId: string) {
   const now = new Date();
-  const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-  const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days ahead
+  const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   try {
-    const pastEvents = await composio.tools.execute(
+    const pastEventsResponse = await composio.tools.execute(
       "GOOGLECALENDAR_EVENTS_LIST",
       {
         userId,
@@ -32,12 +32,16 @@ export async function getCalendarEvents(userId: string) {
           calendarId: "primary",
           timeMax: now.toISOString(),
           timeMin: past.toISOString(),
-          maxResults: 5,
           orderBy: "startTime",
           singleEvents: true,
         },
       }
     );
+
+    const pastEventsData = pastEventsResponse.data;
+    if (pastEventsData && pastEventsData.items) {
+      pastEventsData.items = pastEventsData.items.reverse().slice(0, 5);
+    }
 
     const futureEvents = await composio.tools.execute(
       "GOOGLECALENDAR_EVENTS_LIST",
@@ -54,13 +58,11 @@ export async function getCalendarEvents(userId: string) {
       }
     );
 
-    // THE CHANGE: We now also return the connected email address,
-    // which Google provides in the 'summary' field of the response.
     return {
-      pastEvents: pastEvents.data,
+      pastEvents: pastEventsData,
       futureEvents: futureEvents.data,
       connectedEmail:
-        futureEvents.data?.summary || pastEvents.data?.summary || null,
+        futureEvents.data?.summary || pastEventsData?.summary || null,
     };
   } catch (error) {
     console.error("Failed to execute Composio tool:", error);
