@@ -1,4 +1,15 @@
-import { Calendar, Clock, Users, Video, FileText } from "lucide-react";
+"use client";
+
+import { useCompletion } from "@ai-sdk/react";
+import {
+  Calendar,
+  Clock,
+  Users,
+  Video,
+  FileText,
+  Sparkles,
+  BrainCircuit,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,7 +38,6 @@ interface EventCardProps {
   hangoutLink?: string;
   status?: string;
   isPast?: boolean;
-  onGenerateSummary?: (EventId: string) => void;
 }
 
 export function EventCard({
@@ -40,8 +50,22 @@ export function EventCard({
   hangoutLink,
   status,
   isPast = false,
-  onGenerateSummary,
 }: EventCardProps) {
+  const { completion, complete, isLoading, error } = useCompletion({
+    api: "/api/summarize",
+  });
+
+  console.log("Completion stream:", completion);
+  const handleGenerateSummary = () => {
+    complete("", {
+      body: {
+        title: summary,
+        description: description,
+        attendees: attendees,
+      },
+    });
+  };
+
   const startDate = new Date(start.dateTime);
   const endDate = new Date(end.dateTime);
   const durationMinutes = Math.round(
@@ -152,25 +176,49 @@ export function EventCard({
             </div>
           </div>
         )}
-        <div className="flex gap-2 pt-2">
-          {hangoutLink && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => window.open(hangoutLink, "_blank")}
-            >
-              <Video className="w-4 h-4" /> Join Event
-            </Button>
+
+        <div className="flex flex-col gap-2 pt-2">
+          <div className="flex gap-2">
+            {hangoutLink && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => window.open(hangoutLink, "_blank")}
+              >
+                <Video className="w-4 h-4" /> Join Event
+              </Button>
+            )}
+            {isPast && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleGenerateSummary}
+                disabled={isLoading || !!completion}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <BrainCircuit className="w-4 h-4" />
+                {isLoading ? "Generating..." : "Generate AI Summary"}
+              </Button>
+            )}
+          </div>
+
+          {completion && (
+            <div className="mt-2 p-3 bg-blue-50/50 border border-blue-200 rounded-lg animate-in fade-in-50">
+              <h4 className="font-semibold text-sm text-blue-800 flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                AI Summary
+              </h4>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                {completion}
+              </p>
+            </div>
           )}
-          {isPast && onGenerateSummary && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onGenerateSummary(id)}
-            >
-              Generate AI Summary
-            </Button>
+
+          {error && (
+            <div className="mt-2 text-sm text-red-600">
+              Error: Could not generate summary.
+            </div>
           )}
         </div>
       </CardContent>

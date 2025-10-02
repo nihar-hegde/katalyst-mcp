@@ -119,10 +119,6 @@ export default function HomePage() {
     if (userId) handleFetchEvents(userId);
   };
 
-  const handleGenerateSummary = (EventId: string) => {
-    console.log("Generate summary for:", EventId);
-  };
-
   if (isCheckingStatus) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -277,7 +273,6 @@ export default function HomePage() {
                       hangoutLink={event.hangoutLink}
                       status={event.status}
                       isPast={true}
-                      onGenerateSummary={handleGenerateSummary}
                     />
                   ))
                 ) : (
