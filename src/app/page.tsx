@@ -5,7 +5,7 @@ import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Calendar, AlertCircle, CheckCircle2, LogOut } from "lucide-react";
 import { Attendee } from "@/types";
 
 interface EventItem {
@@ -34,6 +34,7 @@ export default function HomePage() {
   const [events, setEvents] = useState<CalendarData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
@@ -61,6 +62,42 @@ export default function HomePage() {
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!userId) return;
+
+    setIsDisconnecting(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to disconnect.");
+      }
+
+      window.sessionStorage.removeItem("composio-calendar-userId");
+
+      setIsConnected(false);
+      setConnectedEmail(null);
+      setEvents(null);
+      setUserId(null);
+
+      const newUserId = crypto.randomUUID();
+      window.sessionStorage.setItem("composio-calendar-userId", newUserId);
+      setUserId(newUserId);
+    } catch (err: unknown) {
+      setError((err as Error).message);
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -196,6 +233,18 @@ export default function HomePage() {
           >
             {isLoading ? "Fetching..." : "2. Fetch Events"}
           </Button>
+          {isConnected && (
+            <Button
+              onClick={handleDisconnect}
+              disabled={isDisconnecting}
+              size="lg"
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+            </Button>
+          )}
         </div>
 
         {error && (
